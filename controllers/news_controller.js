@@ -8,16 +8,16 @@ var app = express();
 
 // Database configuration
 var databaseUrl = "newsdb";
-var collections = ["newscollection"];
+var newsCollection = ["newsCollection"];
 
 // Hook mongojs configuration to the db variable
-var db = mongojs(databaseUrl, collections);
+var db = mongojs(databaseUrl, newsCollection);
 db.on("error", function(error) {
   	console.log("Database Error:", error);
 });
 
-// shows latest wsj articles
-app.get("/api/news", function(req, res) {
+// scrapes latest wsj articles
+app.get("/all", function(req, res) {
 	request("https://www.wsj.com/", function(error, response, html) {
 
 		var $ = cheerio.load(html);
@@ -28,25 +28,36 @@ app.get("/api/news", function(req, res) {
 		  	var imgLink = $(element).children().children().children().attr("src");
 		  	var articleLink = $(element).children().children().attr("href");
 		  	var title = $(element).find("h3").find("a").text();
-
-		  	db.collections.insert({imgLink: imgLink, articleLink: articleLink, title: title});
+		  	if (articleLink && title) {
+			  	db.newsCollection.insert({
+			  		imgLink: imgLink, 
+			  		articleLink: articleLink, 
+			  		title: title
+			  	},
+			  	function(err, scraped) {
+			  		if(err) {
+			  			console.log(err);
+			  		}
+			  		else {
+			  			console.log(scraped);
+			  		}
+			  	});
+			};  	
 		});
-
-		// After looping through each element found, log the results to the console
-		console.log(results);
 	});
-	res.json("api/news");
+	res.send("The scrape is done");
 });
 
-app.get("/home", function(req, res) {
-	db.collections.find({}, function(error, found) {
-		res.json(found);
-	})
-});
-
-app.get("/scrape", function(req, res) {
-
-
+app.get("/all/news", function(req, res) {
+	db.newsCollection.find({}, function(err, get) {
+		if (err) {
+	      	console.log(err);
+	    }
+	    // Otherwise, send the result of this query to the browser
+	    else {
+	      	res.json(get);
+	    }
+	});
 });
 
 app.listen(3000, function() {
