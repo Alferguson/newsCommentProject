@@ -3,8 +3,9 @@ var express = require("express");
 var mongojs = require("mongojs");
 var request = require("request");
 var cheerio = require("cheerio");
+var router = express.Router();
 
-var app = express();
+// var app = express();
 
 // Database configuration
 var databaseUrl = "newsdb";
@@ -17,7 +18,7 @@ db.on("error", function(error) {
 });
 
 // scrapes latest wsj articles
-app.get("/all", function(req, res) {
+router.get("/scrape", function(req, res) {
 	request("https://www.wsj.com/", function(error, response, html) {
 
 		var $ = cheerio.load(html);
@@ -25,12 +26,17 @@ app.get("/all", function(req, res) {
 
 		$("div.wsj-card").each(function(i, element) {
 
-		  	var imgLink = $(element).children().children().children().attr("src");
+		  	var summary = $(element).find("p").find("span").text();
 		  	var articleLink = $(element).children().children().attr("href");
 		  	var title = $(element).find("h3").find("a").text();
 		  	if (articleLink && title) {
+		  		for (var i = 0; i< db.newsCollection.length; i++) {
+		  			if (db.newsCollection[i].title == title) {
+		  				return;
+		  			}
+		  		}
 			  	db.newsCollection.insert({
-			  		imgLink: imgLink, 
+			  		summary: summary, 
 			  		articleLink: articleLink, 
 			  		title: title
 			  	},
@@ -48,7 +54,7 @@ app.get("/all", function(req, res) {
 	res.send("The scrape is done");
 });
 
-app.get("/all/news", function(req, res) {
+router.get("/all/news", function(req, res) {
 	db.newsCollection.find({}, function(err, get) {
 		if (err) {
 	      	console.log(err);
@@ -58,8 +64,4 @@ app.get("/all/news", function(req, res) {
 	      	res.json(get);
 	    }
 	});
-});
-
-app.listen(3000, function() {
-  console.log("App running on port 3000!");
 });

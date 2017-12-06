@@ -42,7 +42,7 @@ app.use("/", htmlRoutes);
 
 // 		$("div.wsj-card").each(function(i, element) {
 
-// 		  	var summary = $(element).find("p").find("span").text();
+		  	// var summary = $(element).find("p").find("span").text();
 // 		  	var articleLink = $(element).children().children().attr("href");
 // 		  	var title = $(element).find("h3").find("a").text();
 // 		  	if (articleLink && title) {
