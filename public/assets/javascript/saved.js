@@ -1,47 +1,66 @@
 $(document.body).ready(function() {
 	var deleteComment;
 	var deleteSavedArticle;
+	var commentArticleButton;
 
-	function displaySavedNews(newsCollection) {
-	  $("articles").empty();
-
-	  newsCollection.forEach(function(news) {
-	    $("#saved-articles").append("<div class='container-fluid'><div class='row'" + news.Title + "</div>" +
-	                         "<div class='row'>" + news.imgLink + "</div>" +
-	                         "<div class='row'>" + news.articleLink + "</div>" +
-	                         "<div class='row'>" + saveButton + "</div></div>");
-	  });
+	function findSavedArticles() {
+		$.getJSON("/all/news", function(data) {
+		  	for (var i = 0; i < data.length; i++) {
+		  		if (data[i].saved) {
+		    		$("#news").append("<p data-id='" + data[i]._id + "'>" + data[i].title + "<br/>" + data[i].summary + "<br/>" + data[i].articleLink + " " + saveButton + "</p>");
+		  		}
+		  	}
+		});
 	};
+	findSavedArticles();
 
-	// to display saved news articles with comments
-	$.getJSON("/saved", function(data) {
-		displaySavedNews(data);
-	});
+	function displayComments(data) {
+		// modal trigger here and append buttons too
+	}
 
 	var commentArticle = {};
 	var updating = false;
 
 	$(".comment-on-article").on('click', function(event) {
 		event.preventDefault();
-		// modal trigger here
+		$("#comments").empty();
+		var id = $(this).attr("data-id");
+		$.getJSON("/all/news/" + id, function(data) {
+			console.log(data);
+		      $("#comments").append("<h2>" + data.title + "</h2>");
+		      $("#comments").append("<textarea id='bodyinput' name='body'></textarea>");
+		      $("#comments").append("<button data-id='" + data._id + "' id='saveComment'>Save Comment</button>");
+
+		      if (data.comment) {
+		        $("#bodyinput").val(data.comment.body);
+		    }
+		});
 	});
 
-	// function to update previous comments on saved articles
-	$("#submit-update").on("click", function() {
-		title: $(this).find("title").text(),
-		commentArticle.comment = $("#comment-form").val().trim();
+	// function to save a new comment on saved articles
+	$("#saveComment").on("click", function() {
+		var thisId = $(this).attr("data-id");
 
-		$.ajax({
-			method: "PUT",
-			url: "/saved",
-			data: commentArticle
-		}).done(function() {
-			location.reload();    		
-		});
+	  	// Run a POST request to change the note, using what's entered in the inputs
+	  	$.ajax({
+		    method: "POST",
+		    url: "/articles/" + thisId,
+		    data: {
+		      body: $("#bodyinput").val()
+	    	}
+	  	})
+	    .done(function(data) {
+	      	// Log the response
+	      	console.log(data);
+	      	// Empty the notes section
+	      	$("#comments").empty();
+    	});
+		$("#bodyinput").val("");
 	});
 
 
 	$(".delete-saved-article").on("click", function() {
+		title = $(this).attr("title").text(),
 		$.ajax({
 			method: "DELETE",
 			url: "/saved"
