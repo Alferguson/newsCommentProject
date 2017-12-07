@@ -8,14 +8,14 @@ var mongoose = require("mongoose");
 var cheerio = require("cheerio");
 var router = express.Router();
 
-var db = require("./models");
+var db = require("../models");
 
 // Use morgan logger for logging requests
-app.use(logger("dev"));
+router.use(logger("dev"));
 // Use body-parser for handling form submissions
-app.use(bodyParser.urlencoded({ extended: false }));
+router.use(bodyParser.urlencoded({ extended: false }));
 // Use express.static to serve the public folder as a static directory
-app.use(express.static("public"));
+router.use(express.static("public"));
 
 // Set mongoose to leverage built in JavaScript ES6 Promises
 // Connect to the Mongo DB
@@ -29,54 +29,41 @@ router.get("/scrape", function(req, res) {
 	request("https://www.wsj.com/", function(error, response, html) {
 		var newArticlesCounter = 0;
 		var $ = cheerio.load(html);
-		var results = [];
-		var compare = [];
 		$("div.wsj-card").each(function(i, element) {
-			var repeatArticle = false;
-
 		  	var summary = $(element).find("p").find("span").text();
 		  	var articleLink = $(element).children().children().attr("href");
 		  	var title = $(element).find("h3").find("a").text();
 		  	if (articleLink && title) {
-		  		db.News
-		  			.find({title: title})
-		  			.then(function(dbNews) {
-				  		console.log("Not good");
-			  		})
-			  		.catch(function(err) {
-
-			  		})
-			  	};
-			  	console.log(repeatArticle);
-			  	if (!repeatArticle) {
-			  		db.News.insert({
-				  		summary: summary, 
-				  		articleLink: articleLink, 
-				  		title: title
-				  	}, function(err, scraped) {
-				  		if(err) {
-				  			console.log(err);
-				  		}
-				  		else {
-				  			// console.log(scraped);
-				  		}
-				  	}); 	
-			  	}
+		  		db.News.create({
+			  		summary: summary, 
+			  		articleLink: articleLink, 
+			  		title: title
+			  	}, function(err, scraped) {
+			  		if(err) {
+			  			console.log(err);
+			  		}
+			  		else {
+			  			// console.log(scraped);
+			  		}
+			  	}); 	
+		  	}
 			  	
 		});
 	}); 
-	res.send("boofer");
-	console.log("Scrape is done");
+	res.json("boofer");
+	// console.log("Scrape is done");
 });
 
 router.get("/all/news", function(req, res) {
 	db.News.find({}, function(err, get) {
 		if (err) {
-	      	console.log(err);
+	      	// console.log(err);
 	    }
 	    else {
-	      	res.json(get);
+	    	console.log(get);
+	      	// res.json(get);
 	    }
+	    res.json(get);
 	});
 });
 
@@ -95,15 +82,25 @@ router.get("/all/news/:id", function(req, res) {
 
 // when user saves an article, it changes boolean to true
 router.post("/save-article/:id", function(req, res) {
-	// target id
-  	News.savesFunc();
+	db.News
+		.findOne({ _id: req.params.id })
+		.exec(savesFunc())
+		.then(function(dbNews) {
+	      	res.json(dbNews);
+	    })
+  	// News.savesFunc();
 
 });
 
 // when user unsaves an articles, it changes boolean to false
 router.post("/unsave-article/:id", function(req, res) {
-
-  	News.unSavesFunc();
+	db.News
+		.findOne({ _id: req.params.id })
+		.exec(unSavesFunc())
+		.then(function(dbNews) {
+	      	res.json(dbNews);
+	    })
+  	// News.unSavesFunc();
 
 });
 

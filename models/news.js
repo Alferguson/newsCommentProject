@@ -6,7 +6,8 @@ var Schema = mongoose.Schema;
 var NewsSchema = new Schema({
   title: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   summary: {
     type: String,
@@ -14,7 +15,8 @@ var NewsSchema = new Schema({
   },
   articleLink: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   comments: {
     type: Schema.Types.ObjectId,

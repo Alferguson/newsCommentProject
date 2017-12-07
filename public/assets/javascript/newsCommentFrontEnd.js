@@ -1,28 +1,38 @@
-$(document.body).ready(function() {	
-
+$(document).ready(function() {	
+	
 	var saveButton = $("button");
-	// savedArticle is an object
 	var savedArticle = {};
 
 	function findArticles() {
-		$.getJSON("/all/news", function(data) {
+		// $("#news").empty();
+		$.ajax({
+			method: "GET",
+			url: "/all/news"
+		}).done(function(data) {
+			console.log(data);
 		  	for (var i = 0; i < data.length; i++) {
 		    	$("#news").append("<p data-id='" + data[i]._id + "'>" + data[i].title + "<br/>" + data[i].summary + "<br/>" + data[i].articleLink + " " + saveButton + "</p>");
 		  	}
 		});
 	};
-	findArticles();
+
 
 	function scrape() {
-		$.getJSON("/scrape", function(scrape) {
-			console.log(scrape);
-		})
+		$.getJSON("/scrape")
+			.done(function(scrape) {
+				console.log("sdgsfgsdfg");
+				console.log(scrape);
+				console.log("heyo");
+				findArticles();
+			})
 	}
 
 	// to display news articles
-	$("#find-new-articles").on("click", function() {
+	$("#find-new-articles").on("click", function(event) {
+		event.preventDefault();
 		scrape();
-		findArticles();
+		// location.reload(); 
+		// findArticles();
 	});
 
 	$(".save-this-article").on("click", function() {
@@ -35,4 +45,5 @@ $(document.body).ready(function() {
 			location.reload();    		
 		});
 	})
+	findArticles();
 });

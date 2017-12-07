@@ -30,6 +30,7 @@ $(document.body).ready(function() {
 		      $("#comments").append("<h2>" + data.title + "</h2>");
 		      $("#comments").append("<textarea id='bodyinput' name='body'></textarea>");
 		      $("#comments").append("<button data-id='" + data._id + "' id='saveComment'>Save Comment</button>");
+		      $("#comments").append("<button data-id='" + data._id + "' id='deleteComment'>Delete Comment</button>");
 
 		      if (data.comment) {
 		        $("#bodyinput").val(data.comment.body);
@@ -44,10 +45,28 @@ $(document.body).ready(function() {
 	  	// Run a POST request to change the note, using what's entered in the inputs
 	  	$.ajax({
 		    method: "POST",
-		    url: "/articles/" + thisId,
+		    url: "/saveComment/" + thisId,
 		    data: {
 		      body: $("#bodyinput").val()
 	    	}
+	  	})
+	    .done(function(data) {
+	      	// Log the response
+	      	console.log(data);
+	      	// Empty the notes section
+	      	$("#comments").empty();
+    	});
+		$("#bodyinput").val("");
+	});
+
+	// function to delete a comment on saved articles
+	$("#deleteComment").on("click", function() {
+		var thisId = $(this).attr("data-id");
+
+	  	// Run a POST request to change the note, using what's entered in the inputs
+	  	$.ajax({
+		    method: "POST",
+		    url: "/deleteComment/" + thisId,
 	  	})
 	    .done(function(data) {
 	      	// Log the response

@@ -8,7 +8,6 @@ var mongojs = require("mongojs");
 var request = require("request");
 var cheerio = require("cheerio");
 var newsRoutes = require("./controllers/news_controller");
-var savedRoutes = require("./controllers/saved_controller");
 var htmlRoutes = require("./controllers/html_controller");
 
 var app = express();
@@ -32,8 +31,7 @@ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 app.use("/", newsRoutes);
-// app.use("/", savedRoutes);
-// app.use("/", htmlRoutes);
+app.use("/", htmlRoutes);
 
 app.listen(3000, function() {
   	console.log("App running on port 3000!");
