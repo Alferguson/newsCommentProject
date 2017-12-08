@@ -28,16 +28,6 @@ var NewsSchema = new Schema({
   }
 });
 
-NewsSchema.methods.savesFunc = function() {
-  this.saved = true;
-  return this.saved;
-};
-
-NewsSchema.methods.unSavesFunc = function() {
-  this.saved = false;
-  return this.saved;
-};
-
 // This creates our model from the above schema, using mongoose's model method
 var News = mongoose.model("News", NewsSchema);
 

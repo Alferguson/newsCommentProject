@@ -6,6 +6,7 @@ var bodyParser = require("body-parser");
 var logger = require("morgan");
 var mongoose = require("mongoose");
 var cheerio = require("cheerio");
+var mongojs = require("mongojs");
 var router = express.Router();
 
 var db = require("../models");
@@ -54,6 +55,7 @@ router.get("/scrape", function(req, res) {
 	// console.log("Scrape is done");
 });
 
+// return all of the news from database
 router.get("/all/news", function(req, res) {
 	db.News.find({}, function(err, get) {
 		if (err) {
@@ -69,60 +71,60 @@ router.get("/all/news", function(req, res) {
 
 // to get one news article when comments want to be seen
 router.get("/all/news/:id", function(req, res) {
-	db.News
-	    .findOne({ _id: req.params.id }, {saved: true})
-	    .populate("comment")
-	    .then(function(dbNews) {
-	      res.json(dbNews);
+	db.Comments
+	    .find({ id: req.params.id })
+	    // .populate("comment")
+	    .then(function(dbComments) {
+	      	res.json(dbComments);
 	    })
 	    .catch(function(err) {
-	      res.json(err);
+	      	res.json(err);
 	    });
 });
 
 // when user saves an article, it changes boolean to true
-router.post("/save-article/:id", function(req, res) {
+router.put("/save-article/:id", function(req, res) {
 	db.News
-		.findOne({ _id: req.params.id })
-		.exec(savesFunc())
+		.findOneAndUpdate({ _id: req.params.id}, {saved: true}, { new: true })
 		.then(function(dbNews) {
 	      	res.json(dbNews);
 	    })
-  	// News.savesFunc();
-
+	   	.catch(function(err) {
+	      	res.json(err);
+	    });
 });
 
-// when user unsaves an articles, it changes boolean to false
-router.post("/unsave-article/:id", function(req, res) {
+// when user unsaves an article, it changes boolean to false
+router.put("/unsave-article/:id", function(req, res) {
 	db.News
-		.findOne({ _id: req.params.id })
-		.exec(unSavesFunc())
+		.findOneAndUpdate({ _id: req.params.id }, {saved: false}, { new: true })
 		.then(function(dbNews) {
 	      	res.json(dbNews);
-	    })
-  	// News.unSavesFunc();
-
-});
-
-// to add comments to an article
-router.post("/saveComment/:id", function(req, res) {
-  	db.Comments
-	    .create(req.body)
-	    .then(function(dbComments) {
-	      return db.News.findOneAndUpdate({ _id: req.params.id }, { comment: dbComments._id }, { new: true });
-	    })
-	    .then(function(dbNews) {
-	      res.json(dbNews);
 	    })
 	    .catch(function(err) {
-	      res.json(err);
+	      	res.json(err);
 	    });
 });
 
 // to add comments to an article
-router.post("/deleteComment/:id", function(req, res) {
+router.put("/saveComment/:id", function(req, res) {
   	db.Comments
-	    .remove({ _id: req.params.id })
+	    .create(req.body)
+	    .then(function(dbComments) {
+	      	return db.News.findOneAndUpdate({ _id: req.params.id }, { comment: dbComments._id }, { new: true });
+	    })
+	    .then(function(dbNews) {
+	      	res.json(dbNews);
+	    })
+	    .catch(function(err) {
+	      	res.json(err);
+	    });
+});
+
+// to delete comments from an article
+router.delete("/deleteComment/:id", function(req, res) {
+  	db.Comments
+	    .remove({ id: req.params.id })
 	    .then(function(dbComments) {
 	      res.json(dbComments);
 	    })
@@ -130,4 +132,5 @@ router.post("/deleteComment/:id", function(req, res) {
 	      res.json(err);
 	    });
 });
+
 module.exports = router;

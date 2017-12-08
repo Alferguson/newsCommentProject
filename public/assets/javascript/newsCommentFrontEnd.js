@@ -1,49 +1,48 @@
+function findArticles() {
+	// $("#news").empty();
+	$.ajax({
+		method: "GET",
+		url: "/all/news"
+	}).done(function(data) {
+		console.log(data);
+	  	for (var i = 0; i < data.length; i++) {
+	    	$("#news").append("<p>Title: " + 
+	    		data[i].title + "<br/>Summary: " + 
+	    		data[i].summary + "<br/> Link to Article: <a href='" + 
+	    		data[i].articleLink + 
+	    		"'>Here's the linkydodah</a>" +  
+	    		" " +
+	    		"<button data-id='" + 
+	    		data[i]._id +
+	    		"' id='save-this-article'>save this article</button></p>");
+	  	}
+	});
+};
+
 $(document).ready(function() {	
-	
-	var saveButton = $("button");
-	var savedArticle = {};
-
-	function findArticles() {
-		// $("#news").empty();
-		$.ajax({
-			method: "GET",
-			url: "/all/news"
-		}).done(function(data) {
-			console.log(data);
-		  	for (var i = 0; i < data.length; i++) {
-		    	$("#news").append("<p data-id='" + data[i]._id + "'>" + data[i].title + "<br/>" + data[i].summary + "<br/>" + data[i].articleLink + " " + saveButton + "</p>");
-		  	}
-		});
-	};
-
-
+	findArticles();
+});
+$(document).on("click", "#find-new-articles", function(event) {
+	event.preventDefault();
 	function scrape() {
 		$.getJSON("/scrape")
 			.done(function(scrape) {
-				console.log("sdgsfgsdfg");
-				console.log(scrape);
-				console.log("heyo");
-				findArticles();
+				location.reload();
+				// findArticles();
 			})
 	}
-
 	// to display news articles
-	$("#find-new-articles").on("click", function(event) {
-		event.preventDefault();
-		scrape();
-		// location.reload(); 
-		// findArticles();
-	});
-
-	$(".save-this-article").on("click", function() {
-
-		var id = $(this).data("id")
-		$.ajax({
-			method: "PUT",
-			url: "/save-article/" + id,
-		}).done(function() {
-			location.reload();    		
-		});
-	})
-	findArticles();
+	scrape();
 });
+$(document).on("click", "#save-this-article", function(event) {
+	event.preventDefault();
+	var id = $(this).attr("data-id");
+	console.log(id);
+	$.ajax({
+		method: "PUT",
+		url: "/save-article/" + id,
+	}).done(function() {
+		location.reload();    		
+	});
+});
+
